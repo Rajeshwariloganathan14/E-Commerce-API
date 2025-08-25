@@ -17,6 +17,13 @@ def generateOTP():
         otp+=str(random.randint(0,9))
     return otp
 
+def join(arr):
+    str=""
+    for i in arr:
+        str+=i
+
+    return str
+
 class EmailView(APIView):
     def post(self,request):
         data=request.data
@@ -45,9 +52,9 @@ class OTPView(APIView):
         data=request.data
         if email is None:
             return Response({"otp":"Failed","error":"email required"},status.HTTP_400_BAD_REQUEST)
-        if not data.get("otp"):
+        if not join(data.get("otp")):
             return Response({"otp":"Failed","error":"otp is  required"},status.HTTP_400_BAD_REQUEST)
-        if data.get("otp") != cache.get(email):
+        if join(data.get("otp")) != cache.get(email):
             print(cache.get(email))
             return Response({"otp":"Failed","error":"Wrong OTP"},status.HTTP_400_BAD_REQUEST)
         return Response({"otp":"Successful"},status.HTTP_200_OK)        
@@ -61,9 +68,9 @@ class SetPasswordView(APIView):
             return Response({"password":"Failed","error":"password and confirmPassword required"},status.HTTP_400_BAD_REQUEST)
         if data.get("password")!=data.get("confirmPassword"):
             return Response({"password":"Failed","error":"password and confirmPassword should be same"},status.HTTP_400_BAD_REQUEST)
-        if not data.get("otp"):
+        if not join(data.get("otp")):
             return Response({"password":"Failed","error":"otp is  required"},status.HTTP_400_BAD_REQUEST)
-        if data.get("otp") != cache.get(email):
+        if join(data.get("otp")) != cache.get(email):
             print(cache.get(email))
             return Response({"password":"Failed","error":"Wrong OTP"},status.HTTP_400_BAD_REQUEST)
         user=User(username=email)
