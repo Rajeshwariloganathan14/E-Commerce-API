@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'cors-headers',
     'User',
 ]
 
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'Snapdeal.urls'
@@ -138,4 +140,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER="lancersloom2025@gmail.com"
 EMAIL_HOST_PASSWORD="gbunttybdzbhdmxf"
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  -> blocks the mail and print the mail content in console
