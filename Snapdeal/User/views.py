@@ -48,9 +48,11 @@ class EmailView(APIView):
         return Response({"email":"OTP send successfully","otp":otp},status.HTTP_200_OK)
     
 class OTPView(APIView):
-    def post(self,request,email=None):
+    def post(self,request):
         data=request.data
+        email=data.get("email")
         if email is None:
+
             return Response({"otp":"Failed","error":"email required"},status.HTTP_400_BAD_REQUEST)
         if not join(data.get("otp")):
             return Response({"otp":"Failed","error":"otp is  required"},status.HTTP_400_BAD_REQUEST)
@@ -60,7 +62,8 @@ class OTPView(APIView):
         return Response({"otp":"Successful"},status.HTTP_200_OK)        
 
 class SetPasswordView(APIView):
-    def post(self,request,email=None):
+    def post(self,request):
+        email=data.get("email")
         if email is None:
             return Response({"password":"Failed","error":"email required"},status.HTTP_400_BAD_REQUEST)
         data=request.data
