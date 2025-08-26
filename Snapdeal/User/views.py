@@ -18,7 +18,7 @@ def generateOTP():
     return otp
 
 def join(arr):
-    if type(arr)==str:
+    if type(arr)=="str":
         arr=arr.split(",")
     str=""
     for i in arr:
