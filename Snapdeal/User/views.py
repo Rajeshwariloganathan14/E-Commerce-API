@@ -63,6 +63,7 @@ class OTPView(APIView):
 
 class SetPasswordView(APIView):
     def post(self,request):
+        data=request.data
         email=data.get("email")
         if email is None:
             return Response({"password":"Failed","error":"email required"},status.HTTP_400_BAD_REQUEST)
