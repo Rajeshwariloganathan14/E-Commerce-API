@@ -142,4 +142,4 @@ EMAIL_HOST_PASSWORD="gbunttybdzbhdmxf"
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  -> blocks the mail and print the mail content in console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  #-> blocks the mail and print the mail content in console
