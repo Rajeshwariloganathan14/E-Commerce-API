@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-(tyvhcstfpc58c)z&(rl&#47lbyum_%8a%wnu&&yx_py=+@f+w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["192.168.43.56","127.0.0.1"]
 
 
 # Application definition
@@ -133,6 +133,16 @@ CACHES = {
         }
     }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -143,3 +153,6 @@ EMAIL_HOST_PASSWORD="gbunttybdzbhdmxf"
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  #-> blocks the mail and print the mail content in console
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
