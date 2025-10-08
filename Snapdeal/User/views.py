@@ -7,10 +7,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.mail import EmailMessage  
 from django.conf import settings
-from .models import BuyerProfileModel,SellerProfileModel,ProductModel,CartModel,CategoryModel
+from .models import BuyerProfileModel,SellerProfileModel,ProductModel,CartModel,CategoryModel,OrdersModels
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProductSerializer,CartSerializer,CategorySerializer
+from .serializers import ProductSerializer,CartSerializer,CategorySerializer,DetailedProductSerializer,OrderSerializer
 
+# from keras import layers
+
+# import tensorflow as tf
+# import numpy as np
+# from PIL import Image
+# from io import BytesIO
+# from rest_framework.parsers import MultiPartParser, FormParser
 # Create your views here.
 
 def generateOTP():
@@ -119,11 +126,11 @@ class ViewProduct(APIView):
     def get(self, request,id=None):
         data=request.data
         if id:
-            products=ProductModel.objects.filter(pk=id)
+            products=ProductModel.objects.filter(pk=id).first()
             if not products:
                 return Response({"Products":"Not found"},status.HTTP_404_NOT_FOUND)
             serializer=ProductSerializer(products)
-            return Response(serializer.data,status.HTTP_404_NOT_FOUND)
+            return Response(serializer.data,status.HTTP_200_OK)
         else:
             products=ProductModel.objects.all()
             if not products:
@@ -150,6 +157,10 @@ class AddCartView(APIView):
         product=ProductModel.objects.filter(pk=id).first()
         if not product:
             return Response({"error":"No product found"},status.HTTP_404_NOT_FOUND)
+        cart=CartModel.objects.filter(product=product,user=user).first()
+        print(cart)
+        if cart:
+            return Response({"error":"This product is already in cart"},status.HTTP_200_OK)
         CartModel(
             product=product,
             user=user,
@@ -160,12 +171,10 @@ class AddCartView(APIView):
 class ListCartProductsView(APIView):
     permission_classes=[IsAuthenticated]
     def get(self,request):
-        data=request.data
         user=request.user
         cart=CartModel.objects.filter(user=user).all()
         if not cart:
-            return Response({"error":"Nothing in cart"})
-        print(cart)
+            return Response({"error":"Nothing in cart"},status.HTTP_204_NO_CONTENT)
         serializer=CartSerializer(cart,many=True)
         return Response(serializer.data,status.HTTP_200_OK)
     
@@ -183,7 +192,28 @@ class EditCartProductView(APIView):
         cart.quantity=data.get("quantity")
         cart.save()
         return Response({"editCartProduct":"Successful"},status.HTTP_200_OK)
+    
+class CartProductsCountView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        user=request.user
+        count=CartModel.objects.filter(user=user).count()
+        if count==0:
+            return Response({"error":"Nothing in cart"},status.HTTP_204_NO_CONTENT)
+        return Response({"count":count},status.HTTP_200_OK)
         
+class CartProductView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request,id=None):
+        user=request.user
+        product=ProductModel.objects.filter(pk=id).first()
+        if not product:
+            return Response({"error":"Product not found"},status.HTTP_404_NOT_FOUND)  
+        cart=CartModel.objects.filter(product=product,user=user).first()
+        if not cart:
+            return Response({"product":"Product is not  in the cart"},status.HTTP_200_OK)  
+        return Response({"product":"Product is in the cart"},status.HTTP_200_OK)
+
 class DeleteCartProductView(APIView):
     permission_classes=[IsAuthenticated]
     def delete(self,request,id=None):
@@ -217,3 +247,93 @@ class CategoryProductListView(APIView):
         serializer=ProductSerializer(products,many=True)
         return Response(serializer.data,status.HTTP_200_OK)
     
+class BuyNowProductView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request,id=None):
+        data=request.data
+        product=ProductModel.objects.filter(pk=id).first()
+        if not product:
+            return Response({"error":"No product found"},status.HTTP_404_NOT_FOUND)
+        quantity=data.get("quantity")
+        finalPrice=product.offerPrice*quantity
+        serializer=DetailedProductSerializer(product).data
+        serializer["finalPrice"]=finalPrice
+        return Response(serializer,status.HTTP_200_OK)
+    
+class PlaceOrderView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request,id=None):
+        data=request.data
+        user=request.user
+        product=ProductModel.objects.filter(pk=id).first()
+        if not product:
+            return Response({"error":"Product not found"},status.HTTP_404_NOT_FOUND)
+        finalPrice=product.offerPrice*data.get("quantity")
+        OrdersModels(
+            user=user,
+            product=product,
+            finalPrice=finalPrice,
+            quantity=data.get("quantity"),
+            days=random.randint(5,10)
+        ).save()
+        return Response({"Order placed":"Successful"},status.HTTP_200_OK)
+    
+class ListOrderView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        user=request.user
+        orders=OrdersModels.objects.filter(user=user).all()
+        if not orders:
+            return Response({"error":"No orders"},status.HTTP_204_NO_CONTENT)
+        serializer=OrderSerializer(orders,many=True).data
+        return Response(serializer,status.HTTP_200_OK)
+    
+class DeleteOrderView(APIView):
+    permission_classes=[IsAuthenticated]
+    def delete(self,request,id=None):
+        user=request.user
+        order=OrdersModels.objects.filter(user=user,pk=id).first()
+        if not order:
+            return Response({"error":"No orders"},status.HTTP_204_NO_CONTENT)
+        order.delete()
+        return Response({"Order delete":"Successful"},status.HTTP_200_OK)
+
+# class DLView(APIView):
+#     parser_classes = [MultiPartParser, FormParser] 
+#     MODEL = tf.keras.layers.TFSMLayer('C:\\Users\\DELL\\OneDrive\\Desktop\\REP\\Snapdeal\\User\\1', call_endpoint='serving_default')
+#     CLASS_NAMES = ['Electonics_And_Gadgets', 'Soft_toys']
+
+#     def read_file_as_image(self,data) -> np.ndarray:
+#         image = Image.open(BytesIO(data))
+#         image = image.resize((256, 256))  # Match training size
+#         return np.array(image)
+    
+#     def predict(self,model, img):
+#         # If it's already a numpy array, no need to call .numpy()
+#         if not isinstance(img, np.ndarray):
+#             img = img.numpy()
+
+#         img_array = tf.keras.preprocessing.image.img_to_array(img)
+#         img_array = tf.expand_dims(img_array, 0)  # Create a batch
+
+#         predictions = model.predict(img_array)
+#         predicted_class = self.CLASS_NAMES[np.argmax(predictions[0])]
+#         confidence = round(100 * (np.max(predictions[0])), 2)
+
+#         return predicted_class, confidence
+
+#     def post(self,request):
+#         file = request.FILES["image"]
+#         # img = Image.open(file)
+#         # img = img.resize((256,256))
+#         # img = np.array(img)
+        
+#         prediction = self.predict(file)
+#         result = {
+#             'prediction': prediction['class'],
+#             'confidence': prediction['confidence']
+#         }
+
+#         return Response(result,status=status.HTTP_200_OK)
+
+# # DLClass=DLView.as_view()

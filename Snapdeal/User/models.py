@@ -26,7 +26,7 @@ class CategoryModel(models.Model):
 
 class ProductModel(models.Model):
     owner=models.ForeignKey(User,on_delete=models.CASCADE,null=True)
-    title=models.CharField(max_length=50)
+    title=models.CharField(max_length=100)
     brand=models.CharField(max_length=50)
     categoryName=models.ForeignKey(CategoryModel,on_delete=models.CASCADE,null=True)
     price=models.FloatField()
@@ -48,7 +48,7 @@ class ProductModel(models.Model):
     @property
     def productId(self):
         return self.pk
-    
+       
     @property
     def category(self):
         return self.categoryName.category
@@ -69,7 +69,7 @@ class ProductModel(models.Model):
     def offerPrice(self):
         value=(self.price*self.offer)/100
         ans=self.price-value
-        return ans
+        return round(ans,2)
 
 class CartModel(models.Model):
     product=models.ForeignKey(ProductModel, on_delete=models.CASCADE)
@@ -83,7 +83,7 @@ class CartModel(models.Model):
     @property
     def productId(self):
         return self.product.pk
-    
+
     @property
     def productTitle(self):
         return self.product.title
@@ -101,3 +101,22 @@ class CartModel(models.Model):
         value=(self.product.price*self.product.offer)/100
         ans=self.product.price-value
         return ans
+    
+class OrdersModels(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    product=models.ForeignKey(ProductModel,on_delete=models.CASCADE)
+    finalPrice=models.FloatField()
+    quantity=models.IntegerField()
+    orderPlacedDate=models.DateField(auto_now=True)
+    days=models.IntegerField(default=5)
+
+    def __str__(self):
+        return f"{self.product.title}-{self.user.username}"
+    
+    # @property
+    # def productId(self):
+    #     return self.product.pk
+    
+    # @property
+    # def productTitle(self):
+    #     return self.product.title

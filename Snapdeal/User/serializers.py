@@ -1,4 +1,4 @@
-from .models import ProductModel,CartModel,CategoryModel
+from .models import ProductModel,CartModel,CategoryModel,OrdersModels
 from rest_framework import serializers
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -24,3 +24,16 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model=CategoryModel
         fields=["category","image","id"]
+
+class DetailedProductSerializer(serializers.ModelSerializer):
+    price=serializers.ReadOnlyField()
+    image=serializers.ImageField(read_only=True)
+    offerPrice=serializers.ReadOnlyField()
+    class Meta:
+        model=ProductModel
+        fields=["id","title","price","offerPrice","image"]
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=OrdersModels
+        fields=["product","finalPrice","quantity","orderPlacedDate","days"]
